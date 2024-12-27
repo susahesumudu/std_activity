@@ -8,6 +8,10 @@ from .forms import SubmissionForm,ActivityForm,GradingRubricFormSet
 from .models import Activity, Submission
 from django.utils.timezone import now
 
+from .forms import SubmissionForm
+from .models import Submission
+
+
 class ActivityCreateView(CreateView):
     model = Activity
     form_class = ActivityForm
@@ -50,7 +54,6 @@ class ActivityDetailView(DetailView):
 
 
 
-
 class SubmissionCreateView(CreateView):
     model = Submission
     form_class = SubmissionForm
@@ -66,3 +69,81 @@ class SubmissionCreateView(CreateView):
     def get_success_url(self):
         # Ensure the success URL includes the correct activity PK
         return reverse_lazy('activities:activity_detail', kwargs={'pk': self.kwargs['pk']})
+
+from django.shortcuts import render, redirect
+from .models import Exercise, Submission
+from .forms import SubmissionForm
+
+def submit_exercise(request):
+    if request.method == 'POST':
+        form = SubmissionForm(request.POST)
+        if form.is_valid():
+            submission = form.save(commit=False)
+            submission.user = request.user
+            submission.save()
+            return redirect('exercise_list')  # Replace with your exercise list page
+    else:
+        form = SubmissionForm()
+    return render(request, 'activities/submit_exercise.html', {'form': form})
+
+from django.shortcuts import get_object_or_404
+from .models import Submission, Instruction, Score
+from .forms import ScoringForm
+
+def grade_submission(request, submission_id):
+    submission = get_object_or_404(Submission, id=submission_id)
+    instructions = submission.exercise.instructions.all()
+    if request.method == 'POST':
+        total_score = 0
+        for instruction in instructions:
+            marks_awarded = int(request.POST.get(f'marks_{instruction.id}', 0))
+            total_score += marks_awarded
+
+        Score.objects.create(submission=submission, total_score=total_score)
+        submission.is_reviewed = True
+        submission.save()
+        return redirect('submissions_list')  # Replace with your submissions list page
+
+    return render(request, 'grade_submission.html', {
+        'submission': submission,
+        'instructions': instructions,
+    })
+
+
+from django.shortcuts import render, get_object_or_404
+from .models import Quiz, Question, Response
+from .forms import QuizForm
+
+def take_quiz(request, quiz_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    questions = quiz.questions.all()
+
+    if request.method == 'POST':
+        form = QuizForm(request.POST, questions=questions)
+        if form.is_valid():
+            for question in questions:
+                choice_id = form.cleaned_data.get(f'question_{question.id}')
+                selected_choice = question.choices.get(id=choice_id)
+                Response.objects.create(
+                    user=request.user,
+                    quiz=quiz,
+                    question=question,
+                    selected_choice=selected_choice
+                )
+            return redirect('quiz_results', quiz_id=quiz.id)
+    else:
+        form = QuizForm(questions=questions)
+
+    return render(request, 'take_quiz.html', {'quiz': quiz, 'form': form})
+
+
+def quiz_results(request, quiz_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    responses = Response.objects.filter(user=request.user, quiz=quiz)
+    score = sum(response.selected_choice.is_correct for response in responses)
+    total_questions = quiz.questions.count()
+    return render(request, 'quiz_results.html', {
+        'quiz': quiz,
+        'score': score,
+        'total_questions': total_questions
+    })

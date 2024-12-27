@@ -1,0 +1,7 @@
+<h2>{{ quiz.title }}</h2>
+<p>{{ quiz.description }}</p>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Submit Quiz</button>
+</form>

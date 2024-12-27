@@ -1,0 +1,31 @@
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Submit Exercise</button>
+</form>
+<h1>Submit {{ exercise.title }}</h1>
+<p id="timer">Time Elapsed: 00:00:00</p>
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" id="duration" name="duration" value="0">
+    <button type="submit" onclick="stopTimer()">Submit</button>
+</form>
+
+<script>
+    let startTime = new Date().getTime();
+    let timerInterval = setInterval(updateTimer, 1000);
+
+    function updateTimer() {
+        const now = new Date().getTime();
+        const elapsed = now - startTime;
+        const hours = Math.floor(elapsed / (1000 * 60 * 60));
+        const minutes = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((elapsed % (1000 * 60)) / 1000);
+        document.getElementById("timer").textContent = `Time Elapsed: ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        document.getElementById("duration").value = elapsed;
+    }
+
+    function stopTimer() {
+        clearInterval(timerInterval);
+    }
+</script>

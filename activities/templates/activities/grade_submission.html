@@ -1,0 +1,11 @@
+<h2>Grade Submission</h2>
+<form method="post">
+    {% csrf_token %}
+    {% for instruction in instructions %}
+        <div>
+            <label>{{ instruction.text }}</label>
+            <input type="number" name="marks_{{ instruction.id }}" max="{{ instruction.weight }}" min="0">
+        </div>
+    {% endfor %}
+    <button type="submit">Submit Grades</button>
+</form>

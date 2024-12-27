@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Activity{% endblock %}
+
+{% block content %}
+<h1>Create a New Activity</h1>
+<form method="post">
+    {% csrf_token %}
+    <div class="form-section">
+        {{ form.as_p }}
+    </div>
+    
+    <h3>Grading Criteria</h3>
+    {{ rubric_formset.management_form }}
+    <table id="grading-criteria-table">
+        <thead>
+            <tr>
+                <th>Criteria</th>
+                <th>Excellent Description</th>
+                <th>Good Description</th>
+                <th>Average Description</th>
+                <th>Poor Description</th>
+                <th>Weight</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rubric_form in rubric_formset %}
+            <tr>
+                <td>{{ rubric_form.criteria }}</td>
+                <td>{{ rubric_form.excellent_description }}</td>
+                <td>{{ rubric_form.good_description }}</td>
+                <td>{{ rubric_form.average_description }}</td>
+                <td>{{ rubric_form.poor_description }}</td>
+                <td>{{ rubric_form.weight }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="button-group">
+        <button type="submit" class="btn btn-primary">Create Activity</button>
+        <a href="{% url 'activities:activity_list' %}" class="btn btn-secondary">Back to Activities</a>
+    </div>
+</form>
+{% endblock %}

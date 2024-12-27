@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Activities List{% endblock %}
+
+{% block content %}
+<h1>All Activities</h1>
+<p>
+    <a href="{% url 'activities:activity_create' %}" style="background-color: #007BFF; color: white; padding: 10px; text-decoration: none; border-radius: 5px;">Create Activity</a>
+</p>
+<ul>
+    {% for activity in activities %}
+    <li>
+        <a href="{% url 'activities:activity_detail' activity.pk %}">{{ activity.title }}</a>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

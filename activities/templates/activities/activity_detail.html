@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ activity.title }}{% endblock %}
+
+{% block content %}
+<h1>{{ activity.title }}</h1>
+<p>{{ activity.description }}</p>
+
+<h3>Instructions</h3>
+<p>{{ activity.instructions }}</p>
+
+<h3>Grading Criteria</h3>
+<table border="1">
+  <thead>
+    <tr>
+      <th>Criteria</th>
+      <th>Excellent</th>
+      <th>Good</th>
+      <th>Average</th>
+      <th>Poor</th>
+      <th>Weight</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for rubric in activity.grading_criteria.all %}
+    <tr>
+      <td>{{ rubric.criteria }}</td>
+      <td>{{ rubric.excellent_description }}</td>
+      <td>{{ rubric.good_description }}</td>
+      <td>{{ rubric.average_description }}</td>
+      <td>{{ rubric.poor_description }}</td>
+      <td>{{ rubric.weight }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- Countdown Timer Section -->
+<div id="countdown-timer" style="font-size: 2em; margin: 20px 0;"></div>
+<button onclick="startTimer()">Start Timer</button>
+
+<script>
+  let timer;
+  let totalSeconds = {{ activity.duration_minutes }} * 60;  // Convert minutes to seconds
+
+  function startTimer() {
+    if (timer) return; // Prevent restarting if already started
+    timer = setInterval(function() {
+      if (totalSeconds <= 0) {
+        clearInterval(timer);
+        document.getElementById("countdown-timer").innerHTML = "Time is up!";
+      } else {
+        let minutes = Math.floor(totalSeconds / 60);
+        let seconds = totalSeconds % 60;
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+        document.getElementById("countdown-timer").innerHTML = 
+            minutes + ":" + seconds + " remaining";
+        totalSeconds--;
+      }
+    }, 1000);
+  }
+</script>
+
+<p>
+  <a href="{% url 'activities:upload_submission' activity.pk %}">Upload Your Work</a>
+</p>
+
+<h3>All Submissions</h3>
+<ul>
+  {% for submission in activity.submissions.all %}
+    <li>
+      {{ submission.student_name }} - 
+      <a href="{{ submission.uploaded_file.url }}" target="_blank">Download</a> 
+      ({{ submission.submission_time }})
+    </li>
+  {% empty %}
+    <li>No submissions yet.</li>
+  {% endfor %}
+</ul>
+{% endblock %}
